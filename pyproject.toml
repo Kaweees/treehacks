@@ -3,5 +3,20 @@ name = "treehacks"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.11, <3.13"
+
+dependencies = [
+  "eclipse-zenoh>=1.7.2",
+  "mujoco[all]>=3.5.0",
+  "numpy>=2.4.2",
+  "onnxruntime>=1.24.1",
+  "torch>=2.10.0",
+  "unitree-sdk2py",
+]
+
+[tool.uv.sources]
+unitree-sdk2py = { git = "https://github.com/Kaweees/unitree_sdk2_python.git", branch = "main" }
+
+
+[dependency-groups]
+dev = ["pre-commit", "ipykernel"]

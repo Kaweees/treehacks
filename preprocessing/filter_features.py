@@ -11,8 +11,8 @@ Usage:
 import numpy as np
 import os
 
-INPUT_PATH = "preprocessed/dataset_3class_norm.npz"
-OUTPUT_PATH = "preprocessed/dataset_3class_norm_filtered.npz"
+INPUT_PATH = "dataset_3class_norm.npz"
+OUTPUT_PATH = "dataset_3class_norm_filtered.npz"
 
 SDS_NAMES = {0: "short", 1: "medium", 2: "long"}
 WL_NAMES = {0: "690nm (red)", 1: "905nm (infrared)"}

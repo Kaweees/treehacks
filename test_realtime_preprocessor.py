@@ -209,3 +209,35 @@ def test_nirs_overwrite(preprocessor):
     features, _ = preprocessor.get_features(0.0)
 
     np.testing.assert_array_almost_equal(features[0, N_EEG:], 9.0)
+
+
+# ------------------------------------------------------------------
+# EEG sliding window input
+# ------------------------------------------------------------------
+
+
+def test_eeg_sliding_window_input(preprocessor):
+    """push_eeg accepts (N, 8) sliding window and extracts [-1, :6]."""
+    buf = np.zeros((7499, 8), dtype=np.float32)
+    buf[-1, :6] = [1, 2, 3, 4, 5, 6]  # only the last row matters
+    buf[-1, 6:] = [99, 99]             # columns 6-7 should be ignored
+    buf[-2, :6] = [10, 20, 30, 40, 50, 60]  # second-to-last should be ignored
+
+    preprocessor.push_eeg(10.0, buf)
+    features, mask = preprocessor.get_features(15.0)
+
+    np.testing.assert_array_almost_equal(features[0, :N_EEG], [1, 2, 3, 4, 5, 6])
+    np.testing.assert_array_equal(mask[0, :N_EEG], 1)
+
+
+def test_nirs_sliding_window_input(preprocessor):
+    """push_nirs accepts (N, 40, 3, 2, 3) sliding window and extracts [-1]."""
+    buf = np.zeros((50, 40, 3, 2, 3), dtype=np.float32)
+    buf[-1] = 7.0   # only the last frame matters
+    buf[-2] = 99.0   # should be ignored
+
+    preprocessor.push_nirs(buf)
+    features, mask = preprocessor.get_features(0.0)
+
+    np.testing.assert_array_almost_equal(features[0, N_EEG:], 7.0)
+    np.testing.assert_array_equal(mask[0, N_EEG:], 1)

@@ -43,15 +43,29 @@ class RealtimePreprocessor:
     # ------------------------------------------------------------------
 
     def push_eeg(self, timestamp_ms: float, channels: np.ndarray) -> None:
-        """Buffer a single EEG sample."""
-        channels = np.asarray(channels, dtype=np.float32).ravel()
+        """Buffer a single EEG sample.
+
+        Accepts either a (6,) vector or a raw sliding-window buffer
+        of shape (N, 8+). If a 2-D array is given, the last row and
+        first 6 columns are extracted: channels[-1, :6].
+        """
+        channels = np.asarray(channels, dtype=np.float32)
+        if channels.ndim == 2:
+            channels = channels[-1, :self.N_EEG]
+        channels = channels.ravel()
         assert channels.shape == (self.N_EEG,)
         with self._lock:
             self._eeg_buf.append((timestamp_ms, channels))
 
     def push_nirs(self, data: np.ndarray) -> None:
-        """Store the latest NIRS frame (replaces previous)."""
+        """Store the latest NIRS frame (replaces previous).
+
+        Accepts either a single (40,3,2,3) frame or a sliding-window
+        buffer of shape (N,40,3,2,3). If 5-D, the last frame is extracted.
+        """
         data = np.asarray(data, dtype=np.float32)
+        if data.ndim == 5:
+            data = data[-1]
         assert data.shape == (40, 3, 2, 3)
         with self._lock:
             self._latest_nirs = data

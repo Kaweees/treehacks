@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "treehacks"
 version = "0.1.0"
@@ -19,6 +23,12 @@ dependencies = [
   "triton>=3.5.0,<3.6.0",
   "unitree-sdk2py",
 ]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.uv.sources]
 unitree-sdk2py = { git = "https://github.com/Kaweees/unitree_sdk2_python.git", branch = "main" }

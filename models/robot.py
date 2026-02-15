@@ -16,34 +16,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-# class MLPClassifier(nn.Module):
-#     def __init__(self, input_dim, hidden1=64, hidden2=32, num_classes=4):
-#         super().__init__()
-
-#         self.fc1 = nn.Linear(input_dim, hidden1)
-#         self.fc2 = nn.Linear(hidden1, hidden2)
-#         self.fc3 = nn.Linear(hidden2, num_classes)
-
-#         # Explicit random initialization
-#         for layer in [self.fc1, self.fc2, self.fc3]:
-#             nn.init.normal_(layer.weight)
-#             nn.init.normal_(layer.bias)
-
-#     def forward(self, x):
-#         x = F.relu(self.fc1(x))
-#         x = F.relu(self.fc2(x))
-#         logits = self.fc3(x)
-#         probs = F.softmax(logits, dim=-1)
-#         return probs
-
-
-# # ----- Label Mapping Dictionary -----
-# action_map = {
-#     0: Action.FORWARD,
-#     1: Action.LEFT,
-#     2: Action.RIGHT,
-#     3: Action.STOP
-# }
+# ----- Label Mapping Dictionary -----
+action_map = {
+    0: Action.FORWARD,
+    1: Action.LEFT,
+    2: Action.RIGHT,
+    3: Action.STOP
+}
 
 
 def numpy_listener(sample: zenoh.Sample) -> None:
@@ -52,19 +31,19 @@ def numpy_listener(sample: zenoh.Sample) -> None:
     # Convert array -> tensor, flatten, and add batch dimension
     x = torch.tensor(array, dtype=torch.float32).flatten().unsqueeze(0)
 
-    # # Forward pass
-    # probs = model(x)
+    # Forward pass
+    probs = model(x)
 
-    # # Prediction
-    # pred_idx = torch.argmax(probs, dim=-1).item()
-    # pred_action = action_map[pred_idx]
-    # print(f"Predicted action: {pred_action}")
-    # ctrl.set_action(pred_action)
+    # Prediction
+    pred_idx = torch.argmax(probs, dim=-1).item()
+    pred_action = action_map[pred_idx]
+    print(f"Predicted action: {pred_action}")
+    ctrl.set_action(pred_action)
 
 conf = zenoh.Config()
 session = zenoh.open(conf)
 input_dim = 414_720
-# model = MLPClassifier(input_dim)
+model = lo
 ctrl = None  # Will be initialized in main()
 
 # Subscribe to key expression

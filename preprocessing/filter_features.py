@@ -44,11 +44,11 @@ WL_SHORT = {0: "690nm", 1: "905nm"}
 MOM_SHORT = {0: "intensity", 1: "mtof", 2: "variance"}
 
 
-def compute_keep_columns(sds_keep, wl_keep, mom_keep):
+def compute_keep_columns(modules_keep, sds_keep, wl_keep, mom_keep):
     """Return sorted list of (column_index, name) tuples to keep."""
     keep = [(i, f"EEG_ch{i}") for i in range(N_EEG)]
 
-    for m in range(N_MODULES):
+    for m in sorted(modules_keep):
         for s in range(N_SDS):
             for w in range(N_WL):
                 for k in range(N_MOM):
@@ -63,11 +63,31 @@ def main():
     print("=== Feature Filter ===")
     print(f"Input: {INPUT_PATH}")
 
+    # Module selection
+    mod_input = input(
+        f"\nEnter module IDs to keep (0-{N_MODULES - 1}), comma-separated, "
+        "or press Enter for all: "
+    ).strip()
+    if mod_input:
+        modules_keep = set()
+        for tok in mod_input.split(","):
+            tok = tok.strip()
+            if tok.isdigit() and 0 <= int(tok) < N_MODULES:
+                modules_keep.add(int(tok))
+            else:
+                print(f"  Ignoring invalid module ID: {tok}")
+        if not modules_keep:
+            print("  No valid modules entered, keeping all")
+            modules_keep = set(range(N_MODULES))
+    else:
+        modules_keep = set(range(N_MODULES))
+    print(f"  Keeping {len(modules_keep)} modules: {sorted(modules_keep)}")
+
     sds_keep = ask_group("SDS range", SDS_NAMES)
     wl_keep = ask_group("Wavelength", WL_NAMES)
     mom_keep = ask_group("Moment", MOMENT_NAMES)
 
-    keep = compute_keep_columns(sds_keep, wl_keep, mom_keep)
+    keep = compute_keep_columns(modules_keep, sds_keep, wl_keep, mom_keep)
     keep_indices = [col for col, _ in keep]
     keep_names = [name for _, name in keep]
     n_nirs = len(keep) - N_EEG

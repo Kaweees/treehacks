@@ -8,21 +8,18 @@ Feature layout: [EEG(6) | NIRS(720)] = 726
 """
 
 import collections
+import os
 import threading
 
 import numpy as np
+
+_DEFAULT_NORM_STATS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "norm_stats.npz")
 
 
 class RealtimePreprocessor:
     """Thread-safe real-time feature aggregator.
 
-    Parameters
-    ----------
-    norm_mean : ndarray (726,)
-        Per-feature mean from training set (step_06_normalize).
-    norm_std : ndarray (726,)
-        Per-feature std from training set. Zero-std features should
-        already be set to 1.0 by the offline pipeline.
+    Loads normalization stats (mean/std) from norm_stats.npz by default.
     """
 
     N_EEG = 6
@@ -30,9 +27,10 @@ class RealtimePreprocessor:
     N_FEATURES = N_EEG + N_NIRS
     EEG_WINDOW_MS = 20.0
 
-    def __init__(self, norm_mean: np.ndarray, norm_std: np.ndarray):
-        self.norm_mean = norm_mean.astype(np.float32).ravel()
-        self.norm_std = norm_std.astype(np.float32).ravel()
+    def __init__(self, norm_stats_path: str = _DEFAULT_NORM_STATS):
+        data = np.load(norm_stats_path)
+        self.norm_mean = data["norm_mean"].astype(np.float32).ravel()
+        self.norm_std = data["norm_std"].astype(np.float32).ravel()
         assert self.norm_mean.shape == (self.N_FEATURES,)
         assert self.norm_std.shape == (self.N_FEATURES,)
 

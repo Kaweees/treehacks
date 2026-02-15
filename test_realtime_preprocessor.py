@@ -1,5 +1,8 @@
 """Tests for RealtimePreprocessor."""
 
+import os
+import tempfile
+
 import numpy as np
 import pytest
 
@@ -10,21 +13,32 @@ N_NIRS = 720
 N_FEAT = N_EEG + N_NIRS
 
 
+def _make_stats_file(mean, std):
+    """Save norm stats to a temp .npz and return the path."""
+    f = tempfile.NamedTemporaryFile(suffix=".npz", delete=False)
+    np.savez(f.name, norm_mean=mean, norm_std=std)
+    return f.name
+
+
 @pytest.fixture
-def preprocessor():
+def preprocessor(tmp_path):
     """Preprocessor with mean=0, std=1 (identity normalization)."""
-    mean = np.zeros(N_FEAT, dtype=np.float32)
-    std = np.ones(N_FEAT, dtype=np.float32)
-    return RealtimePreprocessor(mean, std)
+    path = str(tmp_path / "stats.npz")
+    np.savez(path,
+             norm_mean=np.zeros(N_FEAT, dtype=np.float32),
+             norm_std=np.ones(N_FEAT, dtype=np.float32))
+    return RealtimePreprocessor(path)
 
 
 @pytest.fixture
-def norm_preprocessor():
+def norm_preprocessor(tmp_path):
     """Preprocessor with non-trivial normalization stats."""
     rng = np.random.default_rng(42)
-    mean = rng.standard_normal(N_FEAT).astype(np.float32)
-    std = np.abs(rng.standard_normal(N_FEAT)).astype(np.float32) + 0.1
-    return RealtimePreprocessor(mean, std)
+    path = str(tmp_path / "stats.npz")
+    np.savez(path,
+             norm_mean=rng.standard_normal(N_FEAT).astype(np.float32),
+             norm_std=(np.abs(rng.standard_normal(N_FEAT)).astype(np.float32) + 0.1))
+    return RealtimePreprocessor(path)
 
 
 def _make_nirs(value=1.0):
